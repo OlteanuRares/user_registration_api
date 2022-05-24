@@ -39,16 +39,17 @@ The application has two endpoints:
    --data-raw '{
         "email": "<your_email>",
         "password": "<your password>"
-       }'
+       }`
 
 2) localhost:8000/api/v1/activate/
-curl --location --request PATCH 'localhost:8000/api/v1/activate/' \
+
+`curl --location --request PATCH 'localhost:8000/api/v1/activate/' \
 --header 'Authorization: Basic cmFyZXNfb2x0ZWFudUB5YWhvby5jb206YmFy' \
 --header 'Content-Type: application/json' \
 --data-raw '{
-    "email": "rares_olteanu@yahoo.com",
-    "password": "bar",
-    "token": "K5cG"
-}'
+    "email": <your email>>",
+    "password": "<your password>>",
+    "token": "<received token>"
+}`
 
 A rest client such as insomnia or postman can be used to send these requests
