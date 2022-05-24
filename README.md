@@ -47,8 +47,6 @@ The application has two endpoints:
 -u '<your_email>:<your_password>' \
 --header 'Content-Type: application/json' \
 --data-raw '{
-    "email": <your email>>",
-    "password": "<your password>>",
     "token": "<received token>"
 }`
 
