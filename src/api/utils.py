@@ -4,12 +4,13 @@ import psycopg2
 import pytz
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+import base64
 
 from django.conf import settings
 from django.core.mail import send_mail
 from django.contrib.auth.hashers import make_password
 
-from src.api.exceptions import Http500Error
+from src.api.exceptions import Http500Error, Http400Error
 
 
 class ApiResponse(object):
@@ -109,3 +110,28 @@ def token_not_expired(api_user, token):
     utc = pytz.UTC
     now = utc.localize(datetime.utcnow())
     return  now <= api_user[5] + relativedelta(minutes=1)
+
+def request_is_valid(request):
+    if 'HTTP_AUTHORIZATION' not in request.META:
+        return False
+
+    auth = request.META['HTTP_AUTHORIZATION'].split()
+    if len(auth) != 2:
+        return False
+
+    if auth[0].lower() != 'basic':
+        return False
+    return True
+
+def get_auth_from_request(request):
+    if 'HTTP_AUTHORIZATION' not in request.META:
+        raise Http400Error(message="HTTP_AUTHORIZATION missing")
+
+    auth = request.META['HTTP_AUTHORIZATION'].split()
+    if len(auth) != 2:
+        raise Http400Error(message='Incorrect HTTP_AUTHORIZATION')
+
+    if auth[0].lower() != 'basic':
+        raise Http400Error(message='Application only support basic auth.')
+
+    return  base64.b64decode(auth[1].encode()).decode().split(':')

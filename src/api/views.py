@@ -1,5 +1,6 @@
 import json
 import logging
+from django.contrib.auth.hashers import check_password
 
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -14,10 +15,11 @@ from src.api.utils import (
     get_random_string,
     save_token,
     activate_user,
-    token_not_expired
+    token_not_expired,
+    get_auth_from_request
 )
 from src.api.exceptions import Http500Error, Http400Error, Http404Error, Http401Error
-from src.api.auth import check_user_password
+
 
 
 logger = logging.getLogger(__name__)
@@ -83,13 +85,17 @@ class ActivateView(View):
 
     def patch(self, request):
         api_user = None
+
         content = json.loads(request.body)
-        email = content.get('email')
-        password = content.get('password')
         token = content.get('token')
 
-        if not all([email, password, token]):
-            raise Http400Error(message='Email, password and token should be sent in the request body.')
+        try:
+            email, password = get_auth_from_request(request)
+        except Exception as ex:
+            raise Http400Error(message=str(ex))
+
+        if not token:
+            raise Http400Error(message='Token should be sent in the request body.')
 
         try:
             api_user = get_api_user(email)[0]
@@ -100,7 +106,7 @@ class ActivateView(View):
         if not api_user:
             raise Http404Error(message=f"User with {email} not found.")
 
-        if not check_user_password(user_password=api_user[2], request=request):
+        if not check_password(password, api_user[2]):
             raise Http401Error(message=f"The email or the password provided are wrong.")
 
         logger.info("User and password are matching.")

@@ -44,7 +44,7 @@ The application has two endpoints:
 2) localhost:8000/api/v1/activate/
 
 `curl --location --request PATCH 'localhost:8000/api/v1/activate/' \
---header 'Authorization: Basic cmFyZXNfb2x0ZWFudUB5YWhvby5jb206YmFy' \
+-u '<your_email>:<your_password>' \
 --header 'Content-Type: application/json' \
 --data-raw '{
     "email": <your email>>",
