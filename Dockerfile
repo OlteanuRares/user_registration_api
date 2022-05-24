@@ -6,6 +6,6 @@ ADD . /src
 WORKDIR /src
 
 RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+RUN pip install -r requirements.txt && pip install -e .
 
 EXPOSE 8000

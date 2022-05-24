@@ -15,7 +15,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from src.api.views import SignupView, ActivateView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path(r'api/v1/sign_up/', SignupView.as_view(), name='api.sign_up'),
+    path(r'api/v1/activate/', ActivateView.as_view(), name='api.activate')
 ]

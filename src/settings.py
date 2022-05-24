@@ -37,9 +37,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
-    'src.user_registration'
 ]
+
+INSTALLED_APPS += ['src.api',]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -75,13 +75,18 @@ WSGI_APPLICATION = 'src.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
+DB_DEFAULT_HOST = os.environ['DB_DEFAULT_HOST']
+DB_DEFAULT_NAME = os.environ['DB_DEFAULT_NAME']
+DB_DEFAULT_USER = os.environ['DB_DEFAULT_USER']
+DB_DEFAULT_PASSWORD=os.environ['DB_DEFAULT_PASSWORD']
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ['DB_DEFAULT_NAME'],
-        "USER": os.environ['DB_DEFAULT_USER'],
-        "PASSWORD": os.environ['DB_DEFAULT_PASSWORD'],
-        "HOST": os.environ['DB_DEFAULT_HOST'],
+        "NAME": DB_DEFAULT_NAME,
+        "USER": DB_DEFAULT_USER,
+        "PASSWORD": DB_DEFAULT_PASSWORD,
+        "HOST": DB_DEFAULT_HOST,
         "PORT": 5432,
     }
 }
@@ -128,3 +133,33 @@ STATIC_URL = '/static/'
 # email
 EMAIL_HOST = os.environ['EMAIL_HOST']
 EMAIL_PORT = os.environ['EMAIL_PORT']
+DEFAULT_FROM_EMAIL = 'example.com'
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'console': {
+            'format': '[%(asctime)s] %(name)s (%(levelname)s) %(message)s',
+            'datefmt': '%Y-%m-%d %H:%M:%S'
+        },
+    },
+    'handlers': {
+        'null': {
+            'level': 'DEBUG',
+            'class': 'logging.NullHandler',
+        },
+        'console': {
+            'level': 'DEBUG',
+            'formatter': 'console',
+            'class': 'logging.StreamHandler',
+        }
+    },
+    'root': {
+        'level': 'DEBUG',
+        'handlers': ['console'],
+    }
+}
+
+DEFAULT_URL = 'localhost:8000'
