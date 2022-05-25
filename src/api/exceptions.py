@@ -85,6 +85,7 @@ class Http415Error(HttpError):
     """
     status_code = 415
     default_message = 'Invalid content type'
+    headers = {}
 
 
 class Http500Error(HttpError):

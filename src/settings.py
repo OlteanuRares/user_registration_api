@@ -82,7 +82,7 @@ DB_DEFAULT_PASSWORD=os.environ['DB_DEFAULT_PASSWORD']
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
         "NAME": DB_DEFAULT_NAME,
         "USER": DB_DEFAULT_USER,
         "PASSWORD": DB_DEFAULT_PASSWORD,

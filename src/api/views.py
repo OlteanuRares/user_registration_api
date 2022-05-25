@@ -32,20 +32,18 @@ class SignupView(View):
         return super(SignupView, self).dispatch(request, *args, **kwargs)
 
     def post(self, request):
-        api_user = None
         content = json.loads(request.body)
         email = content.get('email')
         password = content.get('password')
         if not all([email, password]):
             raise Http400Error(message='Email, and password should be sent in the request body.')
-
-        logger.info("Check if the email already in database..")
         try:
             api_user = get_api_user(email)
-        except Http500Error as ex:
+        except Exception as ex:
             logger.error(str(ex))
             raise Http500Error(message=f"Failed to fetch data because {ex.message}")
 
+        logger.info("Check if the email already in database.")
         if api_user:
             logger.info(f'User with {email} already exists.')
         else :
@@ -73,7 +71,10 @@ class SignupView(View):
 
         return ApiResponse(
             status=201,
-            content=f'Activation mail sent to {email} with the token: {activation_url}.'
+            content={
+                "message" : f'Activation mail sent to {email}.',
+                'token': token
+            }
         )
 
 
@@ -84,31 +85,33 @@ class ActivateView(View):
         return super(ActivateView, self).dispatch(request, *args, **kwargs)
 
     def patch(self, request):
-        api_user = None
-
         content = json.loads(request.body)
         token = content.get('token')
 
+        logger.info('Getting email and password from request')
         try:
             email, password = get_auth_from_request(request)
+        except Http400Error as ex:
+            raise Http400Error(message=ex.response['errors'])
         except Exception as ex:
             raise Http400Error(message=str(ex))
 
         if not token:
+            logger.info('Token should be sent in the request body.')
             raise Http400Error(message='Token should be sent in the request body.')
 
+        logger.info('Get api user')
         try:
-            api_user = get_api_user(email)[0]
+            api_user = get_api_user(email)
         except Http500Error as ex:
             logger.error(str(ex))
             raise Http500Error(message=f"Failed to fetch data because {ex.message}")
-
-        if not api_user:
-            raise Http404Error(message=f"User with {email} not found.")
-
+        if not len(api_user):
+            raise Http404Error(message=f"User {email} not found.")
+        api_user = api_user[0]
+        logger.info('Check password')
         if not check_password(password, api_user[2]):
             raise Http401Error(message=f"The email or the password provided are wrong.")
-
         logger.info("User and password are matching.")
 
         if api_user[4]:
@@ -117,14 +120,17 @@ class ActivateView(View):
         same_token = api_user[3] == token
         if not same_token:
             raise Http400Error(f"Provided token not matching the user token.")
-
+        logger.info('Check token validity.')
         if token_not_expired(api_user=api_user, token=token):
             try:
                 activate_user(api_user_id=api_user[0])
+                logger.info(f"User with {email} has been activated")
             except Exception as ex:
                 raise Http500Error(message=f"Activation failed becvause {str(ex)}")
         else:
             logger.info(f'The token {token} expired. Signup again to receive a new token.')
             raise Http400Error(message=f'The token {token} expired. Signup again to receive a new token.')
 
-        return ApiResponse(content=f"User {email} has been activated.")
+        return ApiResponse(content={
+            'message': f"User {email} has been activated.",
+        })

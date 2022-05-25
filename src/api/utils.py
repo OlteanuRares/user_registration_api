@@ -47,7 +47,7 @@ def get_connection():
         password=settings.DB_DEFAULT_PASSWORD
     )
 
-def execute_select_statement(query=None):
+def execute_select_statement(query):
     result, conn = None, None
     try:
         conn = get_connection()
@@ -61,7 +61,7 @@ def execute_select_statement(query=None):
             conn.close()
         return result
 
-def execute_insert_update_statement(query=None):
+def execute_insert_update_statement(query):
     result, conn = None, None
     try:
         conn = get_connection()
@@ -87,7 +87,7 @@ def send_activation_email(email, token):
     return message
 
 def get_api_user(email):
-    query = f"select * from api_apiuser where email='{email}'  limit 1;"
+    query = f"select * from api_apiuser where email='{email}' order by created_at desc limit 1;"
     return execute_select_statement(query)
 
 def insert_api_user(email, password):
@@ -97,9 +97,10 @@ def insert_api_user(email, password):
             f"values ('{email}','{hashed_password}', null, false, '{now}', '{now}');"
     return execute_insert_update_statement(query)
 
-def save_token(email, token):
+def save_token(email, token, pref_date=None):
     now = datetime.utcnow()
-    query = f"update api_apiuser set token='{token}', token_sent_at='{now}' where email='{email}';"
+    token_activated_at = pref_date or now
+    query = f"update api_apiuser set token='{token}', token_sent_at='{token_activated_at}' where email='{email}';"
     return execute_insert_update_statement(query)
 
 def activate_user(api_user_id):
@@ -111,17 +112,6 @@ def token_not_expired(api_user, token):
     now = utc.localize(datetime.utcnow())
     return  now <= api_user[5] + relativedelta(minutes=1)
 
-def request_is_valid(request):
-    if 'HTTP_AUTHORIZATION' not in request.META:
-        return False
-
-    auth = request.META['HTTP_AUTHORIZATION'].split()
-    if len(auth) != 2:
-        return False
-
-    if auth[0].lower() != 'basic':
-        return False
-    return True
 
 def get_auth_from_request(request):
     if 'HTTP_AUTHORIZATION' not in request.META:
@@ -135,3 +125,8 @@ def get_auth_from_request(request):
         raise Http400Error(message='Application only support basic auth.')
 
     return  base64.b64decode(auth[1].encode()).decode().split(':')
+
+
+def delete_api_user(email):
+    query = f"""delete from api_apiuser where email='{email}'"""
+    return execute_insert_update_statement(query)

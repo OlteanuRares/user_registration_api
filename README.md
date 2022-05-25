@@ -28,7 +28,7 @@
    `docker-compose exec web  bash`
 
 * to run the tests on local environment run:
-    `docker-compose run --rm --entrypoint pytest web tests/`
+    `docker-compose run --rm web pytest tests/`
 
 ### Usage
 The application has two endpoints:
